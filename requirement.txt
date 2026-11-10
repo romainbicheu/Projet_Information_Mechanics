@@ -3,5 +3,4 @@ matplotlib
 tensorflow
 numpy
 pillow
-python3-tk
 pathlib
