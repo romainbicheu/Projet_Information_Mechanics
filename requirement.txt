@@ -4,3 +4,10 @@ tensorflow
 numpy
 pillow
 pathlib
+tensorflow-probability 
+tf-keras 
+scienceplots
+pandas
+utils
+setuptools
+opencv-python-headless

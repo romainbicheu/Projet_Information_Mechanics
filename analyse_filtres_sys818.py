@@ -25,20 +25,19 @@ Notebook Colab basé sur le code du prof (`utils/utils.py` : `get_filter`, `getS
 
 # Commented out IPython magic to ensure Python compatibility.
 import os
+
+from sklearn import utils
 # Keras 2 (legacy) pour éviter les conflits avec tensorflow_probability, importé par utils.py
 os.environ["TF_USE_LEGACY_KERAS"] = "1"
 
-!pip -q install tensorflow-probability tf-keras scienceplots
 
 REPO = "/content/Information-Mechanics"
-if not os.path.exists(REPO):
-    !git clone https://github.com/mt3000/Information-Mechanics.git {REPO}
+
 # %cd {REPO}
 
 """## 1. Imports (dont les fonctions du prof)"""
 
 import sys, inspect
-sys.path.insert(0, "/content/Information-Mechanics")
 
 import numpy as np
 import pandas as pd
@@ -48,7 +47,12 @@ from scipy import fft
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from utils.utils import get_filter, getSymAntiSymTF, getDominantAngle
+
+N_LAYERS = 1
+
+sys.path.insert(0, "./content/Information-Mechanics/utils")
+from utils import get_filter, getSymAntiSymTF, getDominantAngle
+
 print("TF", tf.__version__, "| utils du prof importé")
 
 # Vérification rapide : leur décomposition respecte Pythagore et l'orthogonalité
@@ -58,51 +62,11 @@ sym, anti = np.asarray(sym), np.asarray(anti)
 print("||F||² = ||sym||² + ||anti||² :", np.allclose((F**2).sum(), (sym**2).sum() + (anti**2).sum(), atol=1e-3))
 print("orthogonalité <sym, anti> ≈ 0 :", abs((sym*anti).sum()) < 1e-3)
 
-"""## 2. Données de test (à remplacer par le générateur)
-Classes : 0 = barres horizontales, 1 = barres verticales, 2 = damier fin, 3 = damier large.
-"""
-
-CLASSES = ["barres H", "barres V", "damier fin", "damier large"]
-
-def make_dataset(n=2000, size=32, seed=0, noise=0.1):
-    rng = np.random.default_rng(seed)
-    X, y = [], []
-    yy, xx = np.mgrid[:size, :size]
-    for _ in range(n):
-        c = rng.integers(0, 4); p = rng.integers(0, 6)
-        if c == 0: img = ((yy + p) // 2 % 2)                      # varie selon les lignes
-        if c == 1: img = ((xx + p) // 2 % 2)                      # varie selon les colonnes
-        if c == 2: img = (((yy + p) // 2 + (xx + p) // 2) % 2)
-        if c == 3: img = (((yy + p) // 6 + (xx + p) // 6) % 2)
-        X.append(img.astype("float32") + rng.normal(0, noise, (size, size))); y.append(c)
-    return np.array(X)[..., None], np.array(y)                   # (N, 32, 32, 1)
-
-Xtr, ytr = make_dataset(3000, seed=0)
-Xte, yte = make_dataset(500, seed=1)
-print(Xtr.shape, ytr.shape, Xte.shape, yte.shape)
 
 """## 3. Modèles : un non entraîné (référence « initialisation ») et un entraîné
 Filtres 3×3 et `use_bias=True` obligatoires (`get_filter` ne garde que les 3×3 et lit `filters, biases`).
 """
 
-N_LAYERS = 3
-
-def build_cnn(depth=N_LAYERS, ch=16, n_classes=4):
-    inp = keras.Input((32, 32, 1)); x = inp
-    for _ in range(depth):
-        x = layers.Conv2D(ch, 3, padding="same", activation="relu")(x)
-    x = layers.GlobalAveragePooling2D()(x)
-    return keras.Model(inp, layers.Dense(n_classes)(x))
-
-def compile_fit(m, epochs=15, verbose=2):
-    m.compile("adam", keras.losses.SparseCategoricalCrossentropy(from_logits=True), ["accuracy"])
-    m.fit(Xtr, ytr, epochs=epochs, batch_size=64, validation_data=(Xte, yte), verbose=verbose)
-    return m
-
-tf.keras.utils.set_random_seed(0)
-model0 = build_cnn()                  # jamais entraîné
-model  = compile_fit(build_cnn())     # entraîné
-# model.save("cnn.keras")             # format d'échange avec ton binôme
 
 """## 4. Statistiques par couche (avec `getSymAntiSymTF` du prof)"""
 
