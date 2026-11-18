@@ -3,7 +3,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import  numpy as np
 from scipy import fft, stats
-sys.path.insert(0, "./content/Information-Mechanics/utils")
 from utils import get_filter, getSymAntiSymTF, getDominantAngle
 import matplotlib.pyplot as plt
 matplotlib.use("Agg")
