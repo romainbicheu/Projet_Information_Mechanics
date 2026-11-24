@@ -1,4 +1,4 @@
-#!/home/romainbicheu/Projet_Information_Mechanics/.venv312/bin/python3.12
+#!/home/biche/Projet_Information_Mechanics/.venv312/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
